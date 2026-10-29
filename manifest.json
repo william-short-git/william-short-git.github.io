@@ -1,0 +1,25 @@
+{
+  "name": "Lexicon Roguelike - ADHD Reading Adventure",
+  "short_name": "Lexicon Rogue",
+  "description": "An endless-wave, high-dopamine reading arcade game designed for kids with ADHD. Blast monsters with phonics!",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#7c3aed",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "education"]
+}

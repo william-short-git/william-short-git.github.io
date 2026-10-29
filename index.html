@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Lexicon Roguelike - ADHD Reading Adventure</title>
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#7c3aed">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Lexicon Rogue">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            roblox: {
+              gold: '#fbbf24',
+              green: '#22c55e',
+              cyan: '#06b6d4',
+              purple: '#8b5cf6',
+              dark: '#0f172a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Arcade Styles & Fonts -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gradient-to-b from-slate-950 via-purple-950 to-slate-950 text-white min-h-screen flex flex-col justify-between selection:bg-yellow-400 selection:text-black">
+
+  <!-- Canvas for 60fps Juicy Particles -->
+  <canvas id="fx-canvas"></canvas>
+
+  <!-- Interactive Toast Notification -->
+  <div id="game-toast" class="opacity-0 pointer-events-none transition-all duration-300"></div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div id="game-app" class="relative z-10 w-full max-w-xl mx-auto flex flex-col min-h-screen p-3 sm:p-4 justify-between transition-transform duration-75">
+
+    <!-- ======================================================== -->
+    <!-- 1. MAIN MENU VIEW                                        -->
+    <!-- ======================================================== -->
+    <div id="main-menu-view" class="w-full flex-1 flex flex-col items-center justify-between py-6">
+      
+      <!-- Top Brand Tag -->
+      <div class="px-4 py-1.5 bg-purple-900/80 border border-purple-400 rounded-full font-lilita text-xs tracking-widest text-purple-200 uppercase shadow-lg">
+        ⭐ Roblox Arcade Edition ⭐
+      </div>
+
+      <!-- Game Title & Mascot -->
+      <div class="flex flex-col items-center text-center my-auto">
+        <div class="text-7xl sm:text-8xl mb-2 filter drop-shadow-2xl animate-float">
+          🦁⚔️📖
+        </div>
+        <h1 class="font-lilita text-4xl sm:text-5xl text-yellow-300 arcade-text tracking-wide leading-tight mb-2">
+          LEXICON ROGUELIKE
+        </h1>
+        <p class="text-sm sm:text-base text-purple-200 font-semibold max-w-xs sm:max-w-sm">
+          Blast monsters, level up your relics, and unlock epic cards with phonics!
+        </p>
+
+        <!-- Stats Overview Pill Box -->
+        <div class="flex items-center gap-3 sm:gap-4 mt-6 bg-slate-900/90 border-2 border-purple-500/50 rounded-2xl px-4 py-2.5 shadow-xl">
+          <div class="flex flex-col items-center">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">Progress</span>
+            <span id="menu-best-wave" class="font-lexend font-bold text-sm sm:text-base text-yellow-300">Wave 1</span>
+          </div>
+          <div class="h-6 w-px bg-purple-500/40"></div>
+          <div class="flex flex-col items-center">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">Coins</span>
+            <div class="flex items-center gap-1 font-lilita text-sm sm:text-base text-amber-300">
+              <span>🪙</span>
+              <span id="menu-total-coins">0</span>
+            </div>
+          </div>
+          <div class="h-6 w-px bg-purple-500/40"></div>
+          <div class="flex flex-col items-center">
+            <span class="text-[10px] text-slate-400 font-bold uppercase">Level</span>
+            <span id="menu-player-level" class="font-lilita text-sm sm:text-base text-cyan-300">Level 1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Menu Navigation Buttons -->
+      <div class="w-full flex flex-col gap-3 max-w-md">
+        <!-- START / CONTINUE BUTTON -->
+        <button id="btn-main-start" class="btn-chunky btn-attack w-full py-4 sm:py-5 rounded-3xl flex items-center justify-center gap-2 text-slate-950 font-black text-2xl sm:text-3xl font-lilita arcade-text-sm tracking-wider shadow-2xl cursor-pointer">
+          <span>▶️</span> START ADVENTURE
+        </button>
+
+        <!-- SHOP BUTTON -->
+        <button id="btn-main-shop" class="btn-chunky btn-shop w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 text-slate-950 font-black text-lg sm:text-xl font-lilita shadow-lg cursor-pointer">
+          <span>🛒</span> SHOP (CARD SKINS & PACKS)
+        </button>
+
+        <!-- MOM SHOP BUTTON -->
+        <button id="btn-main-mom-shop" class="btn-chunky bg-gradient-to-r from-pink-500 via-rose-500 to-amber-400 border-2 border-pink-200 text-white w-full py-3.5 sm:py-4 rounded-2xl flex items-center justify-center gap-2 font-black text-lg sm:text-xl font-lilita shadow-xl cursor-pointer transform hover:scale-[1.02] active:scale-95 transition-all">
+          <span>💖</span> MOM SHOP & REWARDS
+          <span id="menu-inventory-badge" class="ml-1 px-2 py-0.5 bg-yellow-400 text-slate-950 font-black text-xs rounded-full hidden">0</span>
+        </button>
+
+        <!-- VOCAB PACKS / SPELLING LIST BUTTON -->
+        <button id="btn-main-custom-words" class="btn-chunky btn-utility w-full py-3.5 rounded-2xl flex items-center justify-center gap-2 text-white font-black text-base sm:text-lg font-lilita shadow-lg cursor-pointer">
+          <span>📚</span> VOCAB PACKS & SPELLING
+        </button>
+
+        <!-- SETTINGS BUTTON -->
+        <button id="btn-main-settings" class="w-full py-2.5 bg-slate-800/80 hover:bg-slate-700 active:scale-95 text-slate-300 hover:text-white font-bold text-xs sm:text-sm rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-1.5">
+          <span>⚙️</span> Settings & Reading Guide
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 2. GAME BATTLE VIEW                                      -->
+    <!-- ======================================================== -->
+    <div id="game-battle-view" class="w-full flex-1 flex flex-col justify-between hidden">
+
+      <!-- TOP HEADER / STATUS BAR -->
+      <header class="w-full flex items-center justify-between gap-1.5 bg-slate-900/90 backdrop-blur-md border-3 border-purple-500/50 rounded-2xl p-2 sm:p-2.5 shadow-xl">
+        
+        <!-- Return to Main Menu -->
+        <button id="btn-return-menu" title="Return to Menu" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-90 text-purple-300 hover:text-white font-lilita text-xs rounded-xl border border-purple-400/40 shadow transition-all flex items-center gap-1">
+          <span>🏠</span> <span class="hidden sm:inline">MENU</span>
+        </button>
+
+        <!-- Wave / World Set Info (Clean, High-Contrast Typography Without Blurry Outlines) -->
+        <div class="flex flex-col items-center">
+          <div id="current-wave-badge" class="wave-badge-clean px-3 py-1 rounded-xl text-xs sm:text-sm text-center shadow">
+            WORLD 1 • WAVE 1/10
+          </div>
+          <span id="current-tier-display" class="text-[11px] sm:text-xs text-yellow-300 font-lexend font-bold tracking-wide mt-0.5 drop-shadow-sm text-center">
+            Tier 1: CVC Short Vowels
+          </span>
+        </div>
+
+        <!-- Coins Counter -->
+        <div class="flex items-center gap-1 px-2.5 py-1 bg-slate-800/90 rounded-xl border border-yellow-400/40 shadow-inner">
+          <span class="text-base filter drop-shadow">🪙</span>
+          <span id="coins-display" class="font-lilita text-yellow-300 text-sm sm:text-base arcade-text-sm">0</span>
+        </div>
+
+        <!-- Streak Counter -->
+        <div class="flex items-center gap-1 px-2 py-1 bg-slate-800/90 rounded-xl border border-orange-500/40 shadow-inner">
+          <span id="streak-display" class="font-lilita text-orange-400 text-sm arcade-text-sm">🔥 0</span>
+        </div>
+
+        <!-- Theme Toggle & Controls -->
+        <div class="flex items-center gap-1">
+          <button id="btn-header-theme" title="Toggle Monster Theme" class="px-2 py-1 bg-indigo-700 hover:bg-indigo-600 active:scale-95 text-white font-lilita text-[11px] rounded-xl border border-indigo-400 shadow">
+            🇮🇹 BRAINROT
+          </button>
+          <button id="btn-open-settings" title="Settings" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-purple-700 hover:bg-purple-600 active:scale-90 text-white rounded-xl border border-purple-400 shadow">
+            ⚙️
+          </button>
+        </div>
+      </header>
+
+      <!-- PLAYER STATS: HEALTH, LEVEL & XP BAR -->
+      <div id="player-stats-card" class="w-full my-2 bg-slate-900/70 backdrop-blur-sm rounded-2xl p-2.5 sm:p-3 border border-purple-500/30 flex flex-col gap-2 shadow-md">
+        
+        <!-- Row 1: Player HP Bar -->
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="flex items-center gap-1 text-rose-400 arcade-text-sm">
+              <span>💖</span> PLAYER HP
+            </span>
+            <span id="player-hp-text" class="text-white font-lilita tracking-wider text-xs">20 / 20 HP</span>
+          </div>
+          <div id="player-hp-bar" class="w-full h-3.5 sm:h-4 bg-slate-950/80 rounded-full overflow-hidden p-0.5 border border-rose-500/40 shadow-inner">
+            <div id="player-hp-fill" class="h-full bg-gradient-to-r from-rose-500 via-pink-500 to-red-500 rounded-full transition-all duration-300" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <!-- Row 2: Player Level & XP Bar -->
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="flex items-center gap-1 text-cyan-300 arcade-text-sm">
+              <span id="player-level-badge" class="px-1.5 py-0.2 bg-cyan-600 text-white rounded font-lilita text-[10px]">LVL 1</span> XP PROGRESS
+            </span>
+            <span id="player-xp-text" class="text-cyan-200 font-lilita tracking-wider text-[11px]">0 / 70 XP</span>
+          </div>
+          <div class="w-full h-2.5 sm:h-3 bg-slate-950/80 rounded-full overflow-hidden p-0.5 border border-cyan-500/40 shadow-inner">
+            <div id="player-xp-fill" class="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full transition-all duration-300 xp-bar-striped" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- Row 3: 10% Heal Indicator -->
+        <div class="flex justify-between items-center text-[10px] sm:text-xs text-slate-300 font-semibold px-0.5">
+          <span id="streak-heal-indicator" class="text-pink-300 font-bold">💖 3 in a row to heal 10% HP!</span>
+          <span class="text-slate-400">Score: <strong id="score-display" class="text-yellow-300 font-lilita">0</strong></span>
+        </div>
+      </div>
+
+      <!-- ARENA: THE MONSTER ENCOUNTER (Supports Meme Images & Classic Emojis) -->
+      <div id="monster-card" class="relative w-full bg-gradient-to-b from-purple-900/60 to-slate-900/80 backdrop-blur-md rounded-3xl p-3 sm:p-4 border-4 border-purple-500/60 shadow-2xl flex flex-col items-center justify-center overflow-hidden my-auto">
+        
+        <!-- Boss Alert Crown -->
+        <div id="boss-badge" class="hidden absolute top-2 right-2 px-3 py-1 bg-red-600 text-yellow-300 border-2 border-yellow-300 rounded-full font-lilita text-xs tracking-wider animate-bounce arcade-text-sm shadow-lg">
+          👑 BOSS BATTLE!
+        </div>
+
+        <!-- Monster Avatar Container -->
+        <div class="relative py-1 flex items-center justify-center">
+          <div id="monster-avatar-container" class="flex items-center justify-center min-h-[120px] sm:min-h-[140px]">
+            <img id="monster-avatar" src="assets/monsters/teacup_ballerina.png" class="monster-img animate-float select-none transition-transform" alt="Ballerina Cappuccina">
+          </div>
+        </div>
+
+        <!-- Monster Name -->
+        <div class="flex items-center gap-2 mb-1">
+          <h2 id="monster-name" class="font-lilita text-xl sm:text-2xl text-yellow-300 arcade-text tracking-wide text-center">
+            Ballerina Cappuccina
+          </h2>
+        </div>
+
+        <!-- Monster HP Bar -->
+        <div class="w-full max-w-sm flex flex-col gap-1">
+          <div class="w-full h-5 sm:h-6 bg-slate-950/90 rounded-full p-0.5 border-2 border-slate-700 shadow-inner overflow-hidden relative">
+            <div id="monster-hp-fill" class="h-full bg-gradient-to-r from-emerald-400 to-green-500 rounded-full transition-all duration-200 hp-bar-striped" style="width: 100%;"></div>
+            <span id="monster-hp-text" class="absolute inset-0 flex items-center justify-center text-[10px] sm:text-xs font-black text-white arcade-text-sm font-lilita tracking-wider">
+              4,000 / 4,000
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIO PROMPT & 3-CARD WORD PICKER (Expands dynamically to fit any word!) -->
+      <div id="word-game-station" class="w-full my-2 flex flex-col items-center gap-2.5">
+        
+        <!-- Replay Speaker / Microphone Button -->
+        <button id="btn-speak-word" class="btn-chunky btn-speaker w-full max-w-md py-3 sm:py-3.5 px-6 rounded-3xl flex items-center justify-center gap-3 text-white font-black text-base sm:text-lg font-lilita arcade-text-sm tracking-wider cursor-pointer shadow-xl">
+          <span class="text-2xl">🔊</span>
+          <span>LISTEN TO THE WORD!</span>
+          <span class="text-lg opacity-80">🎙️</span>
+        </button>
+
+        <!-- 3 Word Choice Cards (Flex Container Expands Smoothly) -->
+        <div class="w-full">
+          <div class="text-center text-[11px] sm:text-xs uppercase tracking-widest text-yellow-300 font-extrabold mb-2">
+            👉 TAP THE WORD THAT WAS SAID:
+          </div>
+          <div id="word-choices-container" class="flex flex-col sm:flex-row items-stretch justify-center gap-2.5 sm:gap-3 w-full">
+            <!-- 3 Choice Cards injected dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVE RELICS STRIP -->
+      <footer class="w-full bg-slate-900/80 backdrop-blur-md rounded-2xl p-2 border border-purple-500/40 flex items-center justify-between gap-2 shadow-lg mt-1">
+        <div class="flex items-center gap-1.5 overflow-x-auto py-0.5">
+          <span class="text-[11px] font-black text-purple-300 uppercase tracking-wider font-lilita whitespace-nowrap">RELICS:</span>
+          <div id="active-relics-list" class="flex items-center gap-1.5 flex-nowrap">
+            <!-- Active Relics rendered here -->
+          </div>
+        </div>
+        <div class="text-[10px] text-slate-400 font-semibold whitespace-nowrap">
+          Best: <strong id="highscore-display" class="text-yellow-400 font-lilita">0</strong>
+        </div>
+      </footer>
+
+    </div>
+
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 3. MODALS                                                -->
+  <!-- ======================================================== -->
+
+  <!-- BOSS TREASURE CHEST MODAL (Coins 10-50, Potion & Unique Relic) -->
+  <div id="boss-chest-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-lg bg-gradient-to-b from-slate-900 via-amber-950 to-slate-900 border-4 border-yellow-400 rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col items-center text-center">
+      
+      <!-- Unopened View -->
+      <div id="chest-unopened-view" class="w-full flex flex-col items-center">
+        <div class="text-xs uppercase tracking-widest px-3 py-1 bg-red-600 text-yellow-200 font-lilita rounded-full border border-yellow-300 mb-2 animate-bounce">
+          👑 BOSS DEFEATED!
+        </div>
+        <h2 class="font-lilita text-2xl sm:text-3xl text-yellow-300 arcade-text mb-2">
+          GOLDEN BOSS CHEST!
+        </h2>
+        <p class="text-slate-300 text-xs sm:text-sm font-semibold mb-4">
+          Tap the chest to unlock your coins, health potion, and unique relic!
+        </p>
+
+        <div id="chest-click-area" class="cursor-pointer my-4 p-4 rounded-3xl hover:scale-105 active:scale-95 transition-transform flex flex-col items-center">
+          <div id="chest-click-icon" class="text-8xl filter drop-shadow-2xl chest-idle">
+            🎁
+          </div>
+          <button class="mt-4 px-6 py-3 bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-black rounded-2xl text-lg font-lilita border-2 border-yellow-200 shadow-xl animate-pulse">
+            ✨ TAP TO OPEN CHEST! ✨
+          </button>
+        </div>
+      </div>
+
+      <!-- Opened View -->
+      <div id="chest-opened-view" class="w-full flex flex-col items-center hidden">
+        <div class="text-4xl mb-1 filter drop-shadow">💎✨</div>
+        <h2 class="font-lilita text-2xl sm:text-3xl text-yellow-300 arcade-text mb-1">
+          CHEST OPENED!
+        </h2>
+        
+        <!-- Chest Rewards Summary -->
+        <div class="grid grid-cols-2 gap-3 w-full my-3">
+          <div class="bg-amber-950/80 border-2 border-yellow-400 rounded-2xl p-2.5 flex flex-col items-center">
+            <span class="text-2xl">🪙</span>
+            <span class="text-[10px] text-amber-200 font-bold uppercase">Coins Won</span>
+            <span id="chest-coins-amount" class="font-lilita text-xl text-yellow-300">+35 🪙</span>
+          </div>
+          <div class="bg-rose-950/80 border-2 border-rose-400 rounded-2xl p-2.5 flex flex-col items-center">
+            <span class="text-2xl">🧪</span>
+            <span class="text-[10px] text-rose-200 font-bold uppercase">Health Potion</span>
+            <span class="font-lilita text-xl text-rose-300">+10 HP 💖</span>
+          </div>
+        </div>
+
+        <p class="text-xs text-yellow-200 font-bold mb-3">
+          ⭐ CHOOSE YOUR UNIQUE RELIC REWARD:
+        </p>
+
+        <!-- Relic Choice Grid -->
+        <div id="chest-relic-options" class="w-full grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-2">
+          <!-- Relic choice cards injected here -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LEVEL UP RELIC SELECTION MODAL -->
+  <div id="relic-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-2xl bg-gradient-to-b from-slate-900 to-purple-950 border-4 border-yellow-400 rounded-3xl p-5 sm:p-7 shadow-2xl flex flex-col items-center text-center">
+      
+      <div class="text-4xl sm:text-5xl mb-2 filter drop-shadow">🌟✨</div>
+      <h2 id="relic-modal-title" class="font-lilita text-2xl sm:text-4xl text-yellow-300 arcade-text mb-2 tracking-wide">
+        ⭐ LEVEL 2 REACHED! CHOOSE A RELIC ⭐
+      </h2>
+      <p class="text-slate-300 text-xs sm:text-sm font-semibold mb-5 max-w-md">
+        Player damage increases happen ONLY through relics! Select your superpower:
+      </p>
+
+      <div id="relic-choices-container" class="w-full grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
+        <!-- Injected via game.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- SHOP MODAL (Card Skins & Word Packs) -->
+  <div id="shop-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="w-full max-w-2xl bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 border-4 border-yellow-400 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto">
+      
+      <!-- Shop Header -->
+      <div class="flex items-center justify-between border-b border-purple-500/30 pb-3 mb-4">
+        <div class="flex items-center gap-2">
+          <span class="text-3xl">🛒</span>
+          <h2 class="font-lilita text-2xl sm:text-3xl text-yellow-300 arcade-text">LEXICON SHOP</h2>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1 px-3 py-1 bg-slate-800 rounded-xl border border-yellow-400/50">
+            <span class="text-lg">🪙</span>
+            <span id="shop-coins-display" class="font-lilita text-yellow-300 text-lg">0</span>
+          </div>
+          <button id="btn-close-shop" class="text-slate-400 hover:text-white font-bold text-2xl px-2">✕</button>
+        </div>
+      </div>
+
+      <!-- Card Skins -->
+      <div class="mb-5">
+        <h3 class="font-lilita text-xl text-cyan-400 arcade-text-sm mb-1 flex items-center gap-2">
+          <span>🃏</span> 3D CARD SKINS & THEMES
+        </h3>
+        <p class="text-xs text-slate-300 mb-3">Coins are earned from Boss Chests! Customize your reading cards:</p>
+        <div id="shop-card-skins-list" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          <!-- Card skins rendered here -->
+        </div>
+      </div>
+
+      <!-- Word Packs -->
+      <div>
+        <h3 class="font-lilita text-xl text-yellow-400 arcade-text-sm mb-1 flex items-center gap-2">
+          <span>📚</span> THEMED VOCABULARY PACKS
+        </h3>
+        <p class="text-xs text-slate-300 mb-2">Create custom spelling packs or activate pre-installed word packs:</p>
+        <button id="btn-shop-open-vocab" class="btn-chunky btn-utility w-full py-3 rounded-2xl flex items-center justify-center gap-2 text-white font-lilita text-base shadow-lg cursor-pointer">
+          <span>📚</span> OPEN VOCAB PACKS & SPELLING MANAGER
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- VOCABULARY PACKS & CUSTOM SPELLING MODAL -->
+  <div id="custom-words-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="w-full max-w-2xl bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-900 border-4 border-purple-400 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col gap-3.5 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-purple-500/30 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-3xl">📚</span>
+          <h2 class="font-lilita text-2xl sm:text-3xl text-yellow-300 arcade-text">VOCABULARY & CUSTOM PACKS</h2>
+        </div>
+        <button id="btn-close-custom-words" class="text-slate-400 hover:text-white font-bold text-2xl px-2 cursor-pointer">✕</button>
+      </div>
+
+      <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+        Create custom vocab packs for school spelling words or sight words! When active, custom words are prioritized in battle encounters.
+      </p>
+
+      <!-- Practice Controls Banners -->
+      <div class="flex flex-col gap-2">
+        <!-- Priority Focus Banner -->
+        <div class="bg-indigo-900/60 border-2 border-indigo-400/60 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-inner">
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">🎯</span>
+            <div>
+              <div class="text-xs sm:text-sm font-bold text-yellow-300">Custom Words Priority Focus</div>
+              <div class="text-[11px] text-slate-300">Monsters prioritize testing words from your active custom packs!</div>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+            <input type="checkbox" id="toggle-custom-focus" class="sr-only peer" checked>
+            <div class="w-12 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[3px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow"></div>
+          </label>
+        </div>
+
+        <!-- Disable All Other Words Banner (Exclusive Mode) -->
+        <div class="bg-amber-950/60 border-2 border-amber-400/70 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-inner">
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">🔒</span>
+            <div>
+              <div class="text-xs sm:text-sm font-bold text-amber-300">Disable All Other Words (Spelling Only)</div>
+              <div class="text-[11px] text-slate-300">Hide all default & tier words so player only sees their spelling list!</div>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+            <input type="checkbox" id="toggle-only-custom-vocab" class="sr-only peer">
+            <div class="w-12 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[3px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-400 shadow"></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- CREATE NEW CUSTOM PACK SECTION -->
+      <div class="bg-slate-900/90 border-2 border-dashed border-purple-400/60 rounded-2xl p-3.5 flex flex-col gap-2.5 shadow">
+        <div class="flex items-center justify-between">
+          <h3 class="font-lilita text-sm sm:text-base text-yellow-300 flex items-center gap-1.5 uppercase tracking-wide">
+            <span>➕</span> Create New Custom Vocab Pack
+          </h3>
+          <span class="text-[10px] text-purple-300 font-bold bg-purple-900/60 px-2 py-0.5 rounded-full border border-purple-500/40">FREE & UNLIMITED</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-2">
+          <!-- Icon Picker -->
+          <select id="select-new-pack-icon" class="px-2.5 py-2 bg-slate-800 border-2 border-purple-400/70 rounded-xl text-white font-bold text-sm focus:outline-none focus:border-yellow-400">
+            <option value="📝">📝 Spelling</option>
+            <option value="⭐">⭐ Stars</option>
+            <option value="🎒">🎒 School</option>
+            <option value="🎯">🎯 Sight Words</option>
+            <option value="⚡">⚡ Power</option>
+            <option value="🚀">🚀 Space</option>
+            <option value="🦁">🦁 Animals</option>
+            <option value="🍕">🍕 Food</option>
+            <option value="🦖">🦖 Dino</option>
+            <option value="💎">💎 Gems</option>
+            <option value="🎮">🎮 Gaming</option>
+          </select>
+
+          <!-- Pack Name Input -->
+          <input id="input-new-pack-name" type="text" placeholder="Pack Name (e.g. Week 4 Spelling)..." maxlength="24" class="flex-1 px-3.5 py-2 bg-slate-800 border-2 border-purple-400/70 rounded-xl text-white font-lexend font-bold text-sm focus:outline-none focus:border-yellow-400">
+
+          <!-- Create Button -->
+          <button id="btn-create-pack" class="btn-chunky btn-attack px-4 py-2 text-slate-950 font-black font-lilita rounded-xl text-sm whitespace-nowrap cursor-pointer">
+            ➕ CREATE PACK
+          </button>
+        </div>
+      </div>
+
+      <!-- USER CUSTOM PACKS LIST -->
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <h3 class="font-lilita text-base sm:text-lg text-cyan-300 arcade-text-sm flex items-center gap-1.5">
+            <span>⭐</span> YOUR CUSTOM PACKS
+          </h3>
+          <span id="custom-packs-count-badge" class="text-[11px] text-slate-400 font-bold"></span>
+        </div>
+        <div id="custom-packs-list-container" class="flex flex-col gap-3">
+          <!-- Rendered dynamically by game.js -->
+        </div>
+      </div>
+
+      <!-- PRE-EXISTING / BUILT-IN PACKS LIST -->
+      <div class="flex flex-col gap-2 pt-2 border-t border-purple-500/30">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-lilita text-base sm:text-lg text-yellow-300 arcade-text-sm flex items-center gap-1.5">
+              <span>🔒</span> PRE-INSTALLED GAME PACKS
+            </h3>
+            <p class="text-[11px] text-slate-400">Included with the game. These can be toggled on/off, but cannot be deleted.</p>
+          </div>
+        </div>
+        <div id="builtin-packs-list-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <!-- Rendered dynamically by game.js -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GAME OVER / REVIVE MODAL -->
+  <div id="game-over-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-md bg-gradient-to-b from-slate-900 to-rose-950 border-4 border-rose-500 rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center gap-3">
+      <div class="text-6xl animate-bounce">💔</div>
+      <h2 class="font-lilita text-3xl text-rose-400 arcade-text">OUT OF HEARTS!</h2>
+      <p class="text-slate-200 text-sm font-semibold">
+        The monster hit you back! Don't worry, superhero — you keep all your coins, relics, and items!
+      </p>
+      <div class="w-full flex flex-col gap-2 mt-2">
+        <button id="btn-revive-coins" class="btn-chunky btn-shop w-full py-3.5 rounded-2xl text-slate-950 font-black text-lg font-lilita shadow cursor-pointer">
+          🪙 Revive with 25 Coins!
+        </button>
+        <button id="btn-game-over-menu" class="btn-chunky bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white w-full py-3.5 rounded-2xl font-black text-lg font-lilita shadow border-2 border-indigo-400 cursor-pointer">
+          🏠 Return to Main Menu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOM SHOP & REWARDS MODAL -->
+  <div id="mom-shop-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="w-full max-w-2xl bg-gradient-to-b from-slate-900 via-rose-950/40 to-slate-900 border-4 border-pink-400 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-pink-500/30 pb-3">
+        <div class="flex items-center gap-2.5">
+          <span class="text-3xl">💖</span>
+          <div>
+            <h2 class="font-lilita text-2xl sm:text-3xl text-pink-300 arcade-text leading-tight">MOM'S REWARD SHOP</h2>
+            <p class="text-[11px] text-slate-300">Exchange coins earned from reading practice for real-world rewards!</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1 px-3 py-1 bg-slate-800 rounded-xl border border-yellow-400/50 shadow-inner">
+            <span class="text-lg">🪙</span>
+            <span id="mom-shop-coins-display" class="font-lilita text-yellow-300 text-base sm:text-lg">0</span>
+          </div>
+          <button id="btn-close-mom-shop" class="text-slate-400 hover:text-white font-bold text-2xl px-2 cursor-pointer">✕</button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs: Shop | Inventory | Mom's Editor -->
+      <div class="flex rounded-2xl bg-slate-950/80 p-1.5 border border-pink-500/40 gap-1.5">
+        <button id="tab-btn-mom-shop" class="flex-1 py-2 rounded-xl font-lilita text-xs sm:text-sm font-bold transition-all bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow cursor-pointer">
+          🛒 REWARD SHOP
+        </button>
+        <button id="tab-btn-mom-inv" class="flex-1 py-2 rounded-xl font-lilita text-xs sm:text-sm font-bold transition-all text-slate-400 hover:text-white cursor-pointer">
+          🎒 MY INVENTORY (<span id="inv-tab-count">0</span>)
+        </button>
+        <button id="tab-btn-mom-editor" class="flex-1 py-2 rounded-xl font-lilita text-xs sm:text-sm font-bold transition-all text-slate-400 hover:text-white cursor-pointer">
+          👩‍👧 MOM'S CONTROLS
+        </button>
+      </div>
+
+      <!-- TAB 1: SHOP VIEW (Kid exchanges coins for rewards) -->
+      <div id="mom-shop-view-shop" class="flex flex-col gap-3">
+        <div class="flex items-center justify-between text-xs text-slate-300">
+          <span>Choose a reward to buy with your coins:</span>
+          <span class="text-pink-300 font-bold">Rewards go to your Inventory!</span>
+        </div>
+        <div id="mom-shop-items-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Dynamically populated by game.js -->
+        </div>
+      </div>
+
+      <!-- TAB 2: INVENTORY VIEW (Kid taps to redeem) -->
+      <div id="mom-shop-view-inv" class="flex flex-col gap-3 hidden">
+        <div class="flex items-center justify-between text-xs text-slate-300">
+          <span>Tap any reward to show Mom and redeem it:</span>
+          <span class="text-emerald-400 font-bold">✨ Tap to Redeem</span>
+        </div>
+        <div id="mom-inv-items-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Dynamically populated by game.js -->
+        </div>
+      </div>
+
+      <!-- TAB 3: MOM'S CONTROLS / EDITOR VIEW (Mom creates/edits rewards) -->
+      <div id="mom-shop-view-editor" class="flex flex-col gap-3.5 hidden">
+        
+        <!-- Form to Add/Edit Item -->
+        <div class="bg-slate-900/90 border-2 border-dashed border-pink-400/60 rounded-2xl p-4 flex flex-col gap-3 shadow">
+          <div class="flex items-center justify-between">
+            <h3 id="mom-editor-form-title" class="font-lilita text-base text-yellow-300 flex items-center gap-1.5 uppercase">
+              <span>➕</span> Add New Mom Shop Reward
+            </h3>
+            <span class="text-[10px] text-pink-300 font-bold bg-pink-950/80 px-2 py-0.5 rounded-full border border-pink-500/40">PARENT CREATION</span>
+          </div>
+
+          <input type="hidden" id="input-mom-item-id" value="">
+
+          <!-- Preset Emojis Selector -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold text-slate-300">Choose Icon (Click a preset or type custom):</label>
+            <div id="mom-preset-emojis-container" class="flex flex-wrap gap-1.5 p-2 bg-slate-950/80 rounded-xl border border-slate-800">
+              <!-- Preset Emoji Buttons rendered here -->
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-xs text-slate-400">Selected Icon:</span>
+              <input id="input-mom-item-icon" type="text" value="🍦" maxlength="4" class="w-12 text-center px-2 py-1 bg-slate-800 border-2 border-pink-400 rounded-xl text-xl font-bold focus:outline-none focus:border-yellow-400">
+            </div>
+          </div>
+
+          <!-- Reward Name & Coin Price -->
+          <div class="flex flex-col sm:flex-row gap-2">
+            <div class="flex-1 flex flex-col gap-1">
+              <label class="text-xs font-bold text-slate-300">Reward Name:</label>
+              <input id="input-mom-item-name" type="text" placeholder="e.g. 30 Mins Video Games, Ice Cream Trip..." maxlength="30" class="px-3 py-2 bg-slate-800 border-2 border-pink-400/70 rounded-xl text-white font-lexend font-bold text-sm focus:outline-none focus:border-yellow-400">
+            </div>
+            <div class="w-full sm:w-36 flex flex-col gap-1">
+              <label class="text-xs font-bold text-slate-300">Coin Price:</label>
+              <div class="flex items-center gap-1">
+                <span class="text-lg">🪙</span>
+                <input id="input-mom-item-price" type="number" min="5" max="9999" value="50" class="w-full px-3 py-2 bg-slate-800 border-2 border-pink-400/70 rounded-xl text-yellow-300 font-lilita font-bold text-base focus:outline-none focus:border-yellow-400">
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Price Helper Buttons -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="text-[11px] text-slate-400">Quick Cost:</span>
+            <button type="button" class="btn-quick-price px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-yellow-300 text-xs font-bold rounded-lg border border-slate-700 cursor-pointer" data-price="25">25</button>
+            <button type="button" class="btn-quick-price px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-yellow-300 text-xs font-bold rounded-lg border border-slate-700 cursor-pointer" data-price="50">50</button>
+            <button type="button" class="btn-quick-price px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-yellow-300 text-xs font-bold rounded-lg border border-slate-700 cursor-pointer" data-price="75">75</button>
+            <button type="button" class="btn-quick-price px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-yellow-300 text-xs font-bold rounded-lg border border-slate-700 cursor-pointer" data-price="100">100</button>
+            <button type="button" class="btn-quick-price px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-yellow-300 text-xs font-bold rounded-lg border border-slate-700 cursor-pointer" data-price="150">150</button>
+          </div>
+
+          <!-- Form Buttons -->
+          <div class="flex gap-2 mt-1">
+            <button id="btn-save-mom-item" class="btn-chunky bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-300 hover:to-green-400 text-slate-950 font-black font-lilita flex-1 py-2.5 rounded-xl text-sm shadow cursor-pointer">
+              ➕ ADD REWARD TO SHOP
+            </button>
+            <button id="btn-cancel-edit-mom-item" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs cursor-pointer hidden">
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <!-- Current Shop Items List (Mom can Edit / Delete) -->
+        <div class="flex flex-col gap-2">
+          <h4 class="font-lilita text-sm text-cyan-300 uppercase tracking-wide">Current Shop Items (Edit or Delete)</h4>
+          <div id="mom-editor-items-list" class="flex flex-col gap-2">
+            <!-- Populated by game.js -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- REDEEM CONFIRMATION MODAL -->
+  <div id="redeem-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-sm bg-gradient-to-b from-slate-900 via-purple-950 to-pink-950 border-4 border-yellow-400 rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center gap-3">
+      <div id="redeem-item-icon" class="text-7xl mb-1 filter drop-shadow-lg animate-float">🍦</div>
+      <div class="px-3 py-1 bg-yellow-400 text-slate-950 font-black text-xs rounded-full font-lilita uppercase tracking-wider">
+        REDEEM REWARD WITH MOM
+      </div>
+      <h2 id="redeem-item-name" class="font-lilita text-2xl sm:text-3xl text-yellow-300 arcade-text leading-tight">
+        Ice Cream Treat
+      </h2>
+      <p class="text-slate-200 text-xs sm:text-sm font-semibold">
+        Show this screen to Mom right now to claim your real-world reward!
+      </p>
+      <div class="w-full flex flex-col gap-2 mt-3">
+        <button id="btn-confirm-redeem" class="btn-chunky bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-300 hover:to-green-400 text-slate-950 w-full py-3.5 rounded-2xl font-black text-xl font-lilita shadow-xl cursor-pointer">
+          ✨ REDEEM REWARD ✨
+        </button>
+        <button id="btn-cancel-redeem" class="w-full py-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl border border-slate-700 cursor-pointer">
+          Keep in Inventory
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS & GUIDE MODAL -->
+  <div id="settings-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-md bg-slate-900 border-3 border-purple-500 rounded-3xl p-6 shadow-2xl flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-lilita text-2xl text-yellow-300 arcade-text-sm">SETTINGS & GUIDE</h3>
+        <button id="btn-close-settings" class="text-slate-400 hover:text-white font-bold text-2xl">✕</button>
+      </div>
+
+      <div class="flex flex-col gap-2.5">
+        <!-- Exclusive Custom Spelling Words Only Toggle -->
+        <div class="bg-indigo-950/80 border-2 border-amber-400/50 rounded-2xl p-3 flex items-center justify-between gap-3 shadow">
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">🎯</span>
+            <div>
+              <div class="font-lilita text-sm text-yellow-300">ONLY SPELLING WORDS</div>
+              <div class="text-[11px] text-slate-300 leading-snug">Disable all other words; only your custom spelling list appears in game.</div>
+            </div>
+          </div>
+          <button id="btn-toggle-only-custom" class="btn-chunky px-3 py-1.5 rounded-xl font-lilita text-xs font-bold transition-all cursor-pointer bg-slate-700 text-slate-300 border border-slate-600 whitespace-nowrap">
+            ⚪ OFF
+          </button>
+        </div>
+
+        <!-- Monster Theme Toggle -->
+        <button id="btn-toggle-theme" class="btn-chunky btn-utility w-full py-3 rounded-2xl text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2">
+          🎭 Theme: 🇮🇹 Italian Brainrot
+        </button>
+        <button id="btn-toggle-sound" class="btn-chunky btn-utility w-full py-3 rounded-2xl text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2">
+          🔊 Sound: ON
+        </button>
+        <button id="btn-toggle-autospeak" class="btn-chunky btn-utility w-full py-3 rounded-2xl text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2">
+          🗣️ Auto-Speak: ON
+        </button>
+      </div>
+
+      <div class="bg-slate-950/60 rounded-2xl p-3.5 border border-purple-500/20 text-xs sm:text-sm text-slate-300 space-y-2">
+        <p class="font-bold text-yellow-300 flex items-center gap-1">
+          <span>🌟</span> How to Play:
+        </p>
+        <p>• <strong>Listen & Pick:</strong> Click the speaker button to hear the target word, then tap the matching card!</p>
+        <p>• <strong>XP & Relics:</strong> Gain XP on correct hits and defeats to level up and draft damage relics!</p>
+        <p>• <strong>Boss Chests:</strong> Defeating bosses drops a Treasure Chest with 10-50 coins, health potions, and relics!</p>
+        <p>• <strong>10 Levels per Set:</strong> Difficulty increases every 5 waves (CVC → Blends → Vowel Teams → Multi-syllable)!</p>
+        <p>• <strong>10% Heal:</strong> 3 correct answers in a row restores 10% of your HP!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Logic Script -->
+  <script src="game.js"></script>
+</body>
+</html>
