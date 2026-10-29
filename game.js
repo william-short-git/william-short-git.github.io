@@ -615,6 +615,29 @@ class SoundEngine {
       osc.stop(t + n.off + n.d);
     });
   }
+
+  playPop() {
+    if (!gameState.soundEnabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, t);
+    osc.frequency.exponentialRampToValueAtTime(1200, t + 0.08);
+
+    gain.gain.setValueAtTime(0.2, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(t);
+    osc.stop(t + 0.08);
+  }
 }
 
 const sounds = new SoundEngine();
@@ -626,8 +649,10 @@ const sounds = new SoundEngine();
 function isRelicOrChestModalOpen() {
   const relicModal = document.getElementById('relic-modal');
   const chestModal = document.getElementById('boss-chest-modal');
+  const detailModal = document.getElementById('relic-detail-modal');
   return (relicModal && !relicModal.classList.contains('hidden')) ||
-         (chestModal && !chestModal.classList.contains('hidden'));
+         (chestModal && !chestModal.classList.contains('hidden')) ||
+         (detailModal && !detailModal.classList.contains('hidden'));
 }
 
 function speakTargetWord(word) {
@@ -1397,29 +1422,32 @@ function unlockBossChest() {
     pendingChestLoot.relicChoices.forEach((relicId) => {
       const relic = RELICS_REGISTRY[relicId];
       const card = document.createElement('div');
-      card.className = `relic-card bg-slate-900 border-3 border-yellow-400 rounded-2xl p-2.5 sm:p-3 flex flex-col items-center text-center cursor-pointer transition-all hover:scale-[1.02] active:scale-95 bg-gradient-to-b ${relic.color}/30 shadow-lg`;
+      card.className = `relic-card w-full p-2.5 sm:p-3 rounded-2xl border-3 border-yellow-400/80 hover:border-yellow-300 bg-gradient-to-r from-slate-900 via-amber-950/60 to-slate-900 shadow-md flex items-center justify-between gap-2.5 cursor-pointer transition-all hover:scale-[1.02] active:scale-95`;
       card.innerHTML = `
-        <div class="flex sm:flex-col items-center gap-2 sm:gap-0 w-full mb-1">
-          <div class="text-3xl sm:text-4xl filter drop-shadow-md sm:mb-1 animate-bounce flex-shrink-0">${relic.icon}</div>
-          <div class="flex-1 sm:w-full min-w-0 text-left sm:text-center">
-            <div class="font-lilita text-sm sm:text-base text-yellow-300 truncate">${relic.name}</div>
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="text-3xl filter drop-shadow flex-shrink-0">${relic.icon}</div>
+          <div class="text-left min-w-0">
+            <span class="text-[9px] text-amber-300 uppercase font-black font-lilita">${relic.rarity}</span>
+            <div class="font-lilita text-sm sm:text-base text-white leading-tight truncate">${relic.name}</div>
           </div>
         </div>
-        <p class="text-[10px] sm:text-[11px] text-slate-200 mb-2 leading-snug flex-1 w-full text-left sm:text-center">${relic.description}</p>
-        <button class="w-full py-1.5 sm:py-2 bg-gradient-to-r from-emerald-400 to-green-500 text-slate-950 font-black rounded-xl text-xs sm:text-sm font-lilita cursor-pointer shadow">
-          TAKE RELIC ⚡
-        </button>
+        <div class="px-2.5 py-1 bg-yellow-400 text-slate-950 rounded-xl font-lilita text-xs font-black shadow flex-shrink-0 flex items-center gap-1">
+          <span>VIEW</span> <span>👉</span>
+        </div>
       `;
 
-      card.onclick = () => claimChestReward(relicId);
+      card.onclick = () => openRelicDetailModal(relicId, 'chest');
       relicContainer.appendChild(card);
     });
   }, 750);
 }
 
 function claimChestReward(selectedRelicId) {
-  gameState.coins += pendingChestLoot.coins;
-  gameState.playerHp = Math.min(gameState.playerMaxHp, gameState.playerHp + pendingChestLoot.heal);
+  const coinsGained = pendingChestLoot ? pendingChestLoot.coins : 15;
+  if (pendingChestLoot) {
+    gameState.coins += (pendingChestLoot.coins || 0);
+    gameState.playerHp = Math.min(gameState.playerMaxHp, gameState.playerHp + (pendingChestLoot.heal || 0));
+  }
 
   if (selectedRelicId && !gameState.activeRelics.includes(selectedRelicId)) {
     gameState.activeRelics.push(selectedRelicId);
@@ -1431,6 +1459,8 @@ function claimChestReward(selectedRelicId) {
 
   sounds.playShopBuy();
   document.getElementById('boss-chest-modal').classList.add('hidden');
+  const detailModal = document.getElementById('relic-detail-modal');
+  if (detailModal) detailModal.classList.add('hidden');
 
   gameState.wave++;
   checkDifficultyTransition();
@@ -1440,7 +1470,8 @@ function claimChestReward(selectedRelicId) {
   saveGameData();
   updateUI();
 
-  showToast(`Collected Chest Loot: +${pendingChestLoot.coins} Coins & Health Potion! 🎁`, 'success');
+  showToast(`Collected Chest Loot: +${coinsGained} Coins & Health Potion! 🎁`, 'success');
+  pendingChestLoot = null;
 
   // Voice speaks word only AFTER chest prompt closes!
   if (gameState.autoSpeak && gameState.currentView === 'game') {
@@ -1454,6 +1485,69 @@ function claimChestReward(selectedRelicId) {
 // 12. LEVEL-UP RELIC SELECTION
 // ============================================================================
 
+let pendingDetailRelicId = null;
+let pendingDetailRelicSource = null; // 'levelup' or 'chest'
+
+function openRelicDetailModal(relicId, source = 'levelup') {
+  const relic = RELICS_REGISTRY[relicId];
+  if (!relic) return;
+
+  pendingDetailRelicId = relicId;
+  pendingDetailRelicSource = source;
+
+  const iconEl = document.getElementById('relic-detail-icon');
+  const rarityEl = document.getElementById('relic-detail-rarity');
+  const nameEl = document.getElementById('relic-detail-name');
+  const descEl = document.getElementById('relic-detail-desc');
+
+  if (iconEl) iconEl.textContent = relic.icon;
+  if (rarityEl) {
+    rarityEl.textContent = relic.rarity;
+    if (relic.rarity === 'Legendary') {
+      rarityEl.className = 'inline-block px-3 py-1 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 rounded-full font-black text-xs uppercase mb-2 tracking-wider font-lilita shadow animate-pulse';
+    } else if (relic.rarity === 'Epic') {
+      rarityEl.className = 'inline-block px-3 py-1 bg-gradient-to-r from-purple-400 to-pink-400 text-slate-950 rounded-full font-black text-xs uppercase mb-2 tracking-wider font-lilita shadow';
+    } else if (relic.rarity === 'Rare') {
+      rarityEl.className = 'inline-block px-3 py-1 bg-gradient-to-r from-cyan-400 to-blue-400 text-slate-950 rounded-full font-black text-xs uppercase mb-2 tracking-wider font-lilita shadow';
+    } else {
+      rarityEl.className = 'inline-block px-3 py-1 bg-yellow-400 text-slate-950 rounded-full font-black text-xs uppercase mb-2 tracking-wider font-lilita shadow';
+    }
+  }
+  if (nameEl) nameEl.textContent = relic.name;
+  if (descEl) descEl.textContent = relic.description;
+
+  if (sounds) sounds.playPop();
+
+  const modal = document.getElementById('relic-detail-modal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeRelicDetailModal() {
+  const modal = document.getElementById('relic-detail-modal');
+  if (modal) modal.classList.add('hidden');
+  pendingDetailRelicId = null;
+  pendingDetailRelicSource = null;
+  if (sounds) sounds.playBonk();
+}
+
+function confirmRelicDetailSelection() {
+  if (!pendingDetailRelicId) return;
+
+  const relicId = pendingDetailRelicId;
+  const source = pendingDetailRelicSource;
+
+  const modal = document.getElementById('relic-detail-modal');
+  if (modal) modal.classList.add('hidden');
+  pendingDetailRelicId = null;
+  pendingDetailRelicSource = null;
+
+  if (source === 'chest') {
+    claimChestReward(relicId);
+  } else {
+    selectLevelUpRelic(relicId);
+  }
+}
+
 function showRelicLevelUpScreen() {
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   sounds.playFanfare();
@@ -1462,7 +1556,7 @@ function showRelicLevelUpScreen() {
   const container = document.getElementById('relic-choices-container');
   const title = document.getElementById('relic-modal-title');
 
-  title.textContent = `⭐ LEVEL ${gameState.playerLevel} REACHED! CHOOSE A RELIC ⭐`;
+  title.textContent = `⭐ LEVEL ${gameState.playerLevel} REACHED! ⭐`;
   container.innerHTML = '';
 
   const availableKeys = Object.keys(RELICS_REGISTRY).filter(
@@ -1481,29 +1575,22 @@ function showRelicLevelUpScreen() {
   choices.forEach((relicId) => {
     const relic = RELICS_REGISTRY[relicId];
     const card = document.createElement('div');
-    card.className = `relic-card bg-slate-800/95 border-3 sm:border-4 border-purple-500 rounded-2xl sm:rounded-3xl p-3 sm:p-5 flex flex-col items-center text-center cursor-pointer transition-all duration-200 transform hover:border-yellow-400 hover:scale-[1.02] active:scale-95 bg-gradient-to-b ${relic.color}/20 shadow-lg`;
+    card.className = `relic-choice-card w-full p-3 sm:p-3.5 rounded-2xl border-3 border-purple-400/80 hover:border-yellow-400 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 shadow-lg flex items-center justify-between gap-3 cursor-pointer transform hover:scale-[1.02] active:scale-95 transition-all`;
 
     card.innerHTML = `
-      <div class="flex sm:flex-col items-center gap-2 sm:gap-0 w-full mb-1">
-        <div class="text-3xl sm:text-6xl filter drop-shadow-md sm:mb-2 animate-bounce flex-shrink-0">${relic.icon}</div>
-        <div class="flex-1 sm:w-full min-w-0 text-left sm:text-center">
-          <div class="inline-block px-2.5 py-0.5 sm:px-3 sm:py-1 bg-yellow-400 text-slate-900 rounded-full font-black text-[10px] sm:text-xs uppercase mb-0.5 sm:mb-1 tracking-wider font-lilita">
-            ${relic.rarity}
-          </div>
-          <h3 class="text-base sm:text-2xl font-black text-white font-lilita arcade-text-sm tracking-wide leading-tight truncate">
-            ${relic.name}
-          </h3>
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="text-3xl sm:text-4xl filter drop-shadow animate-float flex-shrink-0">${relic.icon}</div>
+        <div class="text-left min-w-0">
+          <div class="inline-block px-2 py-0.5 bg-yellow-400 text-slate-950 rounded-full font-black text-[9px] uppercase font-lilita">${relic.rarity}</div>
+          <h4 class="font-lilita text-base sm:text-lg text-white leading-tight truncate mt-0.5">${relic.name}</h4>
         </div>
       </div>
-      <p class="text-slate-200 text-xs sm:text-sm font-semibold mb-2.5 sm:mb-4 leading-snug flex-1 w-full text-left sm:text-center">
-        ${relic.description}
-      </p>
-      <button class="w-full py-2 sm:py-3 bg-gradient-to-r from-emerald-400 to-green-500 text-slate-950 font-black rounded-xl sm:rounded-2xl text-sm sm:text-lg font-lilita border-2 border-emerald-300 shadow-md cursor-pointer">
-        EQUIP RELIC ⚡
-      </button>
+      <div class="px-3 py-1.5 bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 rounded-xl font-lilita text-xs sm:text-sm font-black shadow flex-shrink-0 flex items-center gap-1">
+        <span>VIEW</span> <span>👉</span>
+      </div>
     `;
 
-    card.onclick = () => selectLevelUpRelic(relicId);
+    card.onclick = () => openRelicDetailModal(relicId, 'levelup');
     container.appendChild(card);
   });
 
@@ -1522,6 +1609,9 @@ function selectLevelUpRelic(relicId) {
 
   sounds.playCoin();
   document.getElementById('relic-modal').classList.add('hidden');
+  const detailModal = document.getElementById('relic-detail-modal');
+  if (detailModal) detailModal.classList.add('hidden');
+
   saveGameData();
   updateUI();
   showToast(`Equipped ${RELICS_REGISTRY[relicId].name}! Damage & Power Up! 🔥`, 'success');
@@ -2585,6 +2675,9 @@ window.cancelRedeemModal = cancelRedeemModal;
 window.editMomShopItem = editMomShopItem;
 window.deleteMomShopItem = deleteMomShopItem;
 window.toggleOnlyCustomWords = toggleOnlyCustomWords;
+window.openRelicDetailModal = openRelicDetailModal;
+window.closeRelicDetailModal = closeRelicDetailModal;
+window.confirmRelicDetailSelection = confirmRelicDetailSelection;
 
 function renderCardSkinsShop() {
   const container = document.getElementById('shop-card-skins-list');
@@ -3240,6 +3333,20 @@ function bindUIEvents() {
   const btnCancelRedeem = document.getElementById('btn-cancel-redeem');
   if (btnCancelRedeem) btnCancelRedeem.onclick = cancelRedeemModal;
 
+  // Relic Detail Modal Events (Cancel & Select Buttons + Background Tap)
+  const btnRelicDetailCancel = document.getElementById('btn-relic-detail-cancel');
+  if (btnRelicDetailCancel) btnRelicDetailCancel.onclick = closeRelicDetailModal;
+
+  const btnRelicDetailSelect = document.getElementById('btn-relic-detail-select');
+  if (btnRelicDetailSelect) btnRelicDetailSelect.onclick = confirmRelicDetailSelection;
+
+  const relicDetailModal = document.getElementById('relic-detail-modal');
+  if (relicDetailModal) {
+    relicDetailModal.onclick = (e) => {
+      if (e.target === relicDetailModal) closeRelicDetailModal();
+    };
+  }
+
   // Exclusive Spelling Words (Disable All Other Words) Toggles
   const btnToggleOnlyCustom = document.getElementById('btn-toggle-only-custom');
   if (btnToggleOnlyCustom) {
@@ -3259,6 +3366,7 @@ function bindUIEvents() {
     if (!document.getElementById('shop-modal').classList.contains('hidden')) return;
     if (!document.getElementById('mom-shop-modal').classList.contains('hidden')) return;
     if (!document.getElementById('redeem-modal').classList.contains('hidden')) return;
+    if (!document.getElementById('relic-detail-modal').classList.contains('hidden')) return;
     if (!document.getElementById('game-over-modal').classList.contains('hidden')) return;
     if (!document.getElementById('custom-words-modal').classList.contains('hidden')) return;
 

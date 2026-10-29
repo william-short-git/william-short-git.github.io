@@ -329,8 +329,8 @@
           ⭐ CHOOSE YOUR UNIQUE RELIC REWARD:
         </p>
 
-        <!-- Relic Choice Grid -->
-        <div id="chest-relic-options" class="w-full grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-2">
+        <!-- Relic Choice List -->
+        <div id="chest-relic-options" class="w-full flex flex-col gap-2.5 mb-2">
           <!-- Relic choice cards injected here -->
         </div>
       </div>
@@ -340,19 +340,58 @@
 
   <!-- LEVEL UP RELIC SELECTION MODAL -->
   <div id="relic-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto hidden">
-    <div class="w-full max-w-2xl bg-gradient-to-b from-slate-900 to-purple-950 border-4 border-yellow-400 rounded-3xl p-4 sm:p-7 shadow-2xl flex flex-col items-center text-center max-h-[92vh] max-h-[92dvh] overflow-y-auto my-auto modal-scrollable">
+    <div class="w-full max-w-lg bg-gradient-to-b from-slate-900 via-purple-950 to-slate-900 border-4 border-yellow-400 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col items-center text-center my-auto">
       
-      <div class="text-3xl sm:text-5xl mb-1 sm:mb-2 filter drop-shadow">🌟✨</div>
-      <h2 id="relic-modal-title" class="font-lilita text-xl sm:text-4xl text-yellow-300 arcade-text mb-1 sm:mb-2 tracking-wide leading-tight">
-        ⭐ LEVEL 2 REACHED! CHOOSE A RELIC ⭐
+      <div class="text-3xl sm:text-4xl mb-1 filter drop-shadow">🌟✨</div>
+      <h2 id="relic-modal-title" class="font-lilita text-xl sm:text-3xl text-yellow-300 arcade-text mb-1 tracking-wide leading-tight">
+        ⭐ LEVEL 2 REACHED! ⭐
       </h2>
-      <p class="text-slate-300 text-xs sm:text-sm font-semibold mb-3 sm:mb-5 max-w-md">
-        Player damage increases happen ONLY through relics! Select your superpower:
+      <p class="text-slate-300 text-xs sm:text-sm font-semibold mb-3 max-w-sm">
+        Tap a superpower to inspect & equip:
       </p>
 
-      <div id="relic-choices-container" class="w-full grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 mb-2">
+      <div id="relic-choices-container" class="w-full flex flex-col gap-2.5 mb-2">
         <!-- Injected via game.js -->
       </div>
+    </div>
+  </div>
+
+  <!-- RELIC DETAIL & CONFIRMATION MODAL -->
+  <div id="relic-detail-modal" class="fixed inset-0 z-[60] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div id="relic-detail-card" class="relative w-full max-w-sm bg-gradient-to-b from-slate-900 via-purple-950 to-slate-900 border-4 border-yellow-400 rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col items-center text-center animate-pop">
+      
+      <!-- Relic Icon -->
+      <div id="relic-detail-icon" class="text-6xl sm:text-7xl mb-2 filter drop-shadow-xl animate-bounce">
+        🌟
+      </div>
+
+      <!-- Rarity Badge -->
+      <div id="relic-detail-rarity" class="inline-block px-3 py-1 bg-yellow-400 text-slate-950 rounded-full font-black text-xs uppercase mb-2 tracking-wider font-lilita shadow">
+        COMMON
+      </div>
+
+      <!-- Relic Name -->
+      <h3 id="relic-detail-name" class="font-lilita text-2xl sm:text-3xl text-white arcade-text-sm tracking-wide mb-1 leading-tight">
+        Relic Name
+      </h3>
+
+      <!-- Description Box -->
+      <div class="w-full bg-slate-950/70 border-2 border-purple-500/40 rounded-2xl p-3.5 my-3 shadow-inner">
+        <p id="relic-detail-desc" class="text-slate-200 text-sm sm:text-base font-semibold leading-relaxed">
+          Relic description goes here.
+        </p>
+      </div>
+
+      <!-- Action Buttons: Cancel & Select -->
+      <div class="w-full flex items-center gap-3 mt-2">
+        <button id="btn-relic-detail-cancel" class="btn-chunky w-1/3 py-3 rounded-2xl font-lilita text-sm sm:text-base font-bold bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300 border border-slate-600 shadow cursor-pointer">
+          ✕ Cancel
+        </button>
+        <button id="btn-relic-detail-select" class="btn-chunky flex-1 py-3 rounded-2xl font-lilita text-base sm:text-lg font-black bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-300 text-slate-950 border-2 border-emerald-300 shadow-xl active:scale-95 cursor-pointer">
+          ⚡ Select Relic
+        </button>
+      </div>
+
     </div>
   </div>
 
