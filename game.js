@@ -1397,12 +1397,16 @@ function unlockBossChest() {
     pendingChestLoot.relicChoices.forEach((relicId) => {
       const relic = RELICS_REGISTRY[relicId];
       const card = document.createElement('div');
-      card.className = `relic-card bg-slate-900 border-3 border-yellow-400 rounded-2xl p-3 flex flex-col items-center text-center cursor-pointer transition-all hover:scale-105 active:scale-95 bg-gradient-to-b ${relic.color}/30`;
+      card.className = `relic-card bg-slate-900 border-3 border-yellow-400 rounded-2xl p-2.5 sm:p-3 flex flex-col items-center text-center cursor-pointer transition-all hover:scale-[1.02] active:scale-95 bg-gradient-to-b ${relic.color}/30 shadow-lg`;
       card.innerHTML = `
-        <div class="text-4xl mb-1">${relic.icon}</div>
-        <div class="font-lilita text-base text-yellow-300">${relic.name}</div>
-        <p class="text-[11px] text-slate-200 mt-1 mb-2 flex-1">${relic.description}</p>
-        <button class="w-full py-1.5 bg-gradient-to-r from-emerald-400 to-green-500 text-slate-950 font-black rounded-xl text-xs font-lilita">
+        <div class="flex sm:flex-col items-center gap-2 sm:gap-0 w-full mb-1">
+          <div class="text-3xl sm:text-4xl filter drop-shadow-md sm:mb-1 animate-bounce flex-shrink-0">${relic.icon}</div>
+          <div class="flex-1 sm:w-full min-w-0 text-left sm:text-center">
+            <div class="font-lilita text-sm sm:text-base text-yellow-300 truncate">${relic.name}</div>
+          </div>
+        </div>
+        <p class="text-[10px] sm:text-[11px] text-slate-200 mb-2 leading-snug flex-1 w-full text-left sm:text-center">${relic.description}</p>
+        <button class="w-full py-1.5 sm:py-2 bg-gradient-to-r from-emerald-400 to-green-500 text-slate-950 font-black rounded-xl text-xs sm:text-sm font-lilita cursor-pointer shadow">
           TAKE RELIC ⚡
         </button>
       `;
@@ -1477,20 +1481,24 @@ function showRelicLevelUpScreen() {
   choices.forEach((relicId) => {
     const relic = RELICS_REGISTRY[relicId];
     const card = document.createElement('div');
-    card.className = `relic-card bg-slate-800 border-4 border-purple-500 rounded-3xl p-5 flex flex-col items-center text-center cursor-pointer transition-all duration-200 transform hover:border-yellow-400 hover:scale-105 active:scale-95 bg-gradient-to-b ${relic.color}/20`;
+    card.className = `relic-card bg-slate-800/95 border-3 sm:border-4 border-purple-500 rounded-2xl sm:rounded-3xl p-3 sm:p-5 flex flex-col items-center text-center cursor-pointer transition-all duration-200 transform hover:border-yellow-400 hover:scale-[1.02] active:scale-95 bg-gradient-to-b ${relic.color}/20 shadow-lg`;
 
     card.innerHTML = `
-      <div class="text-6xl mb-3 filter drop-shadow-md animate-bounce">${relic.icon}</div>
-      <div class="inline-block px-3 py-1 bg-yellow-400 text-slate-900 rounded-full font-black text-xs uppercase mb-2 tracking-wider font-lilita">
-        ${relic.rarity}
+      <div class="flex sm:flex-col items-center gap-2 sm:gap-0 w-full mb-1">
+        <div class="text-3xl sm:text-6xl filter drop-shadow-md sm:mb-2 animate-bounce flex-shrink-0">${relic.icon}</div>
+        <div class="flex-1 sm:w-full min-w-0 text-left sm:text-center">
+          <div class="inline-block px-2.5 py-0.5 sm:px-3 sm:py-1 bg-yellow-400 text-slate-900 rounded-full font-black text-[10px] sm:text-xs uppercase mb-0.5 sm:mb-1 tracking-wider font-lilita">
+            ${relic.rarity}
+          </div>
+          <h3 class="text-base sm:text-2xl font-black text-white font-lilita arcade-text-sm tracking-wide leading-tight truncate">
+            ${relic.name}
+          </h3>
+        </div>
       </div>
-      <h3 class="text-2xl font-black text-white mb-2 font-lilita arcade-text-sm tracking-wide">
-        ${relic.name}
-      </h3>
-      <p class="text-slate-200 text-sm font-semibold mb-4 leading-snug flex-1">
+      <p class="text-slate-200 text-xs sm:text-sm font-semibold mb-2.5 sm:mb-4 leading-snug flex-1 w-full text-left sm:text-center">
         ${relic.description}
       </p>
-      <button class="w-full py-3 bg-gradient-to-r from-emerald-400 to-green-500 text-slate-950 font-black rounded-2xl text-lg font-lilita border-2 border-emerald-300 shadow-md">
+      <button class="w-full py-2 sm:py-3 bg-gradient-to-r from-emerald-400 to-green-500 text-slate-950 font-black rounded-xl sm:rounded-2xl text-sm sm:text-lg font-lilita border-2 border-emerald-300 shadow-md cursor-pointer">
         EQUIP RELIC ⚡
       </button>
     `;

@@ -279,8 +279,8 @@
   <!-- ======================================================== -->
 
   <!-- BOSS TREASURE CHEST MODAL (Coins 10-50, Potion & Unique Relic) -->
-  <div id="boss-chest-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
-    <div class="w-full max-w-lg bg-gradient-to-b from-slate-900 via-amber-950 to-slate-900 border-4 border-yellow-400 rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col items-center text-center">
+  <div id="boss-chest-modal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto hidden">
+    <div class="w-full max-w-lg bg-gradient-to-b from-slate-900 via-amber-950 to-slate-900 border-4 border-yellow-400 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col items-center text-center max-h-[92vh] max-h-[92dvh] overflow-y-auto my-auto modal-scrollable">
       
       <!-- Unopened View -->
       <div id="chest-unopened-view" class="w-full flex flex-col items-center">
@@ -298,7 +298,7 @@
           <div id="chest-click-icon" class="text-8xl filter drop-shadow-2xl chest-idle">
             🎁
           </div>
-          <button class="mt-4 px-6 py-3 bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-black rounded-2xl text-lg font-lilita border-2 border-yellow-200 shadow-xl animate-pulse">
+          <button class="mt-4 px-6 py-3 bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-black rounded-2xl text-lg font-lilita border-2 border-yellow-200 shadow-xl animate-pulse cursor-pointer">
             ✨ TAP TO OPEN CHEST! ✨
           </button>
         </div>
@@ -306,26 +306,26 @@
 
       <!-- Opened View -->
       <div id="chest-opened-view" class="w-full flex flex-col items-center hidden">
-        <div class="text-4xl mb-1 filter drop-shadow">💎✨</div>
+        <div class="text-3xl sm:text-4xl mb-1 filter drop-shadow">💎✨</div>
         <h2 class="font-lilita text-2xl sm:text-3xl text-yellow-300 arcade-text mb-1">
           CHEST OPENED!
         </h2>
         
         <!-- Chest Rewards Summary -->
-        <div class="grid grid-cols-2 gap-3 w-full my-3">
-          <div class="bg-amber-950/80 border-2 border-yellow-400 rounded-2xl p-2.5 flex flex-col items-center">
-            <span class="text-2xl">🪙</span>
+        <div class="grid grid-cols-2 gap-2.5 sm:gap-3 w-full my-2.5 sm:my-3">
+          <div class="bg-amber-950/80 border-2 border-yellow-400 rounded-2xl p-2 sm:p-2.5 flex flex-col items-center">
+            <span class="text-xl sm:text-2xl">🪙</span>
             <span class="text-[10px] text-amber-200 font-bold uppercase">Coins Won</span>
-            <span id="chest-coins-amount" class="font-lilita text-xl text-yellow-300">+35 🪙</span>
+            <span id="chest-coins-amount" class="font-lilita text-lg sm:text-xl text-yellow-300">+35 🪙</span>
           </div>
-          <div class="bg-rose-950/80 border-2 border-rose-400 rounded-2xl p-2.5 flex flex-col items-center">
-            <span class="text-2xl">🧪</span>
+          <div class="bg-rose-950/80 border-2 border-rose-400 rounded-2xl p-2 sm:p-2.5 flex flex-col items-center">
+            <span class="text-xl sm:text-2xl">🧪</span>
             <span class="text-[10px] text-rose-200 font-bold uppercase">Health Potion</span>
-            <span class="font-lilita text-xl text-rose-300">+10 HP 💖</span>
+            <span class="font-lilita text-lg sm:text-xl text-rose-300">+10 HP 💖</span>
           </div>
         </div>
 
-        <p class="text-xs text-yellow-200 font-bold mb-3">
+        <p class="text-xs text-yellow-200 font-bold mb-2.5">
           ⭐ CHOOSE YOUR UNIQUE RELIC REWARD:
         </p>
 
@@ -339,18 +339,18 @@
   </div>
 
   <!-- LEVEL UP RELIC SELECTION MODAL -->
-  <div id="relic-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
-    <div class="w-full max-w-2xl bg-gradient-to-b from-slate-900 to-purple-950 border-4 border-yellow-400 rounded-3xl p-5 sm:p-7 shadow-2xl flex flex-col items-center text-center">
+  <div id="relic-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto hidden">
+    <div class="w-full max-w-2xl bg-gradient-to-b from-slate-900 to-purple-950 border-4 border-yellow-400 rounded-3xl p-4 sm:p-7 shadow-2xl flex flex-col items-center text-center max-h-[92vh] max-h-[92dvh] overflow-y-auto my-auto modal-scrollable">
       
-      <div class="text-4xl sm:text-5xl mb-2 filter drop-shadow">🌟✨</div>
-      <h2 id="relic-modal-title" class="font-lilita text-2xl sm:text-4xl text-yellow-300 arcade-text mb-2 tracking-wide">
+      <div class="text-3xl sm:text-5xl mb-1 sm:mb-2 filter drop-shadow">🌟✨</div>
+      <h2 id="relic-modal-title" class="font-lilita text-xl sm:text-4xl text-yellow-300 arcade-text mb-1 sm:mb-2 tracking-wide leading-tight">
         ⭐ LEVEL 2 REACHED! CHOOSE A RELIC ⭐
       </h2>
-      <p class="text-slate-300 text-xs sm:text-sm font-semibold mb-5 max-w-md">
+      <p class="text-slate-300 text-xs sm:text-sm font-semibold mb-3 sm:mb-5 max-w-md">
         Player damage increases happen ONLY through relics! Select your superpower:
       </p>
 
-      <div id="relic-choices-container" class="w-full grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3">
+      <div id="relic-choices-container" class="w-full grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4 mb-2">
         <!-- Injected via game.js -->
       </div>
     </div>

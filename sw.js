@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lexicon-roguelike-v5';
+const CACHE_NAME = 'lexicon-roguelike-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
